@@ -25,7 +25,7 @@ After installing this plugin, create a new Redirect (find menu item on the left 
 
 #### Who can manage Redirects in the Dashboard?
 
-By default, only WordPress® Administrators can manage Redirects. If you would like to give others the Capabilities required, please use a plugin like [Enhanced Capability Manager](http://wordpress.org/extend/plugins/capability-manager-enhanced/).
+By default, only WordPress® Administrators can manage (i.e. create/edit) Redirects. If you would like to give others the Capabilities required, please use a plugin like [Enhanced Capability Manager](http://wordpress.org/extend/plugins/capability-manager-enhanced/).
 
 Add the following Capabilities to the additional Roles that should be allowed to manage Redirects.
 
