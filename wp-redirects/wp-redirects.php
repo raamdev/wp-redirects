@@ -74,7 +74,7 @@ class wp_redirects
 			'update_item'       => __( 'Update Category' ),
 			'add_new_item'      => __( 'Add New Category' ),
 			'new_item_name'     => __( 'New Category Name' ),
-			'menu_name'         => __( 'Category' ),
+			'menu_name'         => __( 'Categories' ),
 		);
 
 		$args = array(
