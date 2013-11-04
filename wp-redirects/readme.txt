@@ -1,15 +1,16 @@
 === WP Redirects ===
 
-Contributors: WebSharks
-Donate link: http://www.s2member.com/donate/
-Tags: redirect, redirects, 301 redirects, links, relocate, SEO, post type, post types, utilities, posts, pages
+Stable tag: 130206
+Requires at least: 3.2
+Tested up to: 3.6-alpha
+Text Domain: wp-redirects
 
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Stable tag: 130206
-Requires at least: 3.2
-Tested up to: 3.6-alpha
+Contributors: WebSharks
+Donate link: http://www.s2member.com/donate/
+Tags: redirect, redirects, 301 redirects, links, relocate, SEO, post type, post types, utilities, posts, pages
 
 Create Redirects! This plugin adds a new Post Type. Redirect from anywhere — to anywhere. A very lightweight plugin!
 
