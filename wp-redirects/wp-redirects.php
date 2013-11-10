@@ -35,11 +35,12 @@ class wp_redirects
 		{
 			$args           = array
 			(
-				'public'          => TRUE,
-				'map_meta_cap'    => TRUE,
-				'capability_type' => array('redirect', 'redirects'),
-				'rewrite'         => array('slug' => 'r', 'with_front' => FALSE),
-				'supports'        => array('title', 'author', 'revisions')
+				'public'              => TRUE,
+				'map_meta_cap'        => TRUE,
+				'exclude_from_search' => TRUE,
+				'capability_type'     => array('redirect', 'redirects'),
+				'rewrite'             => array('slug' => 'r', 'with_front' => FALSE),
+				'supports'            => array('title', 'author', 'revisions')
 			);
 			$args['labels'] = array
 			(
