@@ -22,15 +22,13 @@ class wp_redirects
 	public static function init()
 		{
 			wp_redirects::register();
-			wp_redirects::create_taxonomy(); // @TODO Review this.
+			wp_redirects::create_taxonomy();
 
 			wp_redirects::redirect_uri_patterns();
 			add_action('wp', 'wp_redirects::redirect_redirects', 1);
 
 			add_action('add_meta_boxes_'.($post_type = 'redirect'), 'wp_redirects::meta_boxes');
 			add_action('save_post', 'wp_redirects::meta_boxes_save');
-
-			add_filter('ws_plugin__s2member_add_meta_boxes_excluded_types', 'wp_redirects::s2');
 		}
 
 	public static function register()
@@ -58,12 +56,19 @@ class wp_redirects
 				'not_found_in_trash' => __('No Redirects found in Trash', 'wp-redirects')
 			);
 			register_post_type('redirect', $args);
-			#print_r($GLOBALS['wp_post_types']['redirect']);
 		}
 
 	public static function create_taxonomy()
 		{
-			$labels = array
+			$args           = array
+			(
+				'hierarchical'      => TRUE,
+				'show_ui'           => TRUE,
+				'show_admin_column' => TRUE,
+				'query_var'         => TRUE,
+				'rewrite'           => array('slug' => 'rcat'),
+			);
+			$args['labels'] = array
 			(
 				'name'              => __('Categories', 'wp-redirects'),
 				'singular_name'     => __('Category', 'wp-redirects'),
@@ -76,15 +81,6 @@ class wp_redirects
 				'add_new_item'      => __('Add New Category', 'wp-redirects'),
 				'new_item_name'     => __('New Category Name', 'wp-redirects'),
 				'menu_name'         => __('Categories', 'wp-redirects'),
-			);
-			$args   = array
-			(
-				'hierarchical'      => TRUE,
-				'labels'            => $labels,
-				'show_ui'           => TRUE,
-				'show_admin_column' => TRUE,
-				'query_var'         => TRUE,
-				'rewrite'           => array('slug' => 'rcat'),
 			);
 			register_taxonomy('redirect_category', array('redirect'), $args);
 		}
@@ -119,88 +115,112 @@ class wp_redirects
 			unset($_role, $_cap); // Housekeeping.
 		}
 
-	public static function s2($exclued_post_types)
-		{
-			return array_merge($exclued_post_types, array('redirect'));
-		}
-
 	public static function redirect_redirects()
 		{
-			$is_redirection = is_singular('redirect');
+			if(!($is_singular_redirect = is_singular('redirect')))
+				return; // Nothing to do in this case.
 
-			if($is_redirection && ($status = (is_numeric($status = get_post_meta(get_the_ID(), 'wp_redirect_status', TRUE))) ? $status : 301))
-				if(($to = (string)get_post_meta(get_the_ID(), 'wp_redirect_to', TRUE)) && ($to = preg_replace('/%%(.+?)%%/i', '', preg_replace_callback('/%%\\\$([^\[]+?)(.+?)%%/i', 'wp_redirects::_url_e_gprcs_value', $to))))
-					if(empty($_GET) || !get_post_meta(get_the_ID(), 'wp_redirect_to_w_query_vars', TRUE) || ($to = add_query_arg(urlencode_deep(wp_redirects::trim_strip_deep($_GET)), $to)))
-						if(($to = wp_redirects::trim(preg_replace('/(?<!\:)\/+/', '/', $to), 0, '?&=')))
-							wp_redirect($to, $status).exit();
+			$to = (string)get_post_meta(get_the_ID(), 'wp_redirect_to', TRUE);
+			$to = preg_replace_callback('/%%\\\$([^\[]+?)(.+?)%%/i', 'wp_redirects::_url_e_gprcs_value', $to);
+			$to = preg_replace('/%%(.+?)%%/i', '', $to); // Ditch any remaining replacement codes.
 
-			if($is_redirection) wp_redirect(home_url('/'), 301).exit();
+			$to = // Cleanup any double slashes left over by replacement codes.
+				wp_redirects::trim(preg_replace('/(?<!\:)\/+/', '/', $to), 0, '?&=#');
+
+			$status = (is_numeric($status = get_post_meta(get_the_ID(), 'wp_redirect_status', TRUE))) ? (integer)$status : 301;
+
+			if($to && $status) // Redirection URL w/ a possible custom status code.
+				wp_redirect($to, $status).exit(); // It's a good day in Eureka :-)
+
+			wp_redirect(home_url('/'), 301).exit(); // Default redirection (ALWAYS redirect).
 		}
 
 	public static function redirect_uri_patterns()
 		{
-			global $wpdb; // Database object reference.
-			/** @var $wpdb WPDB Database object reference. */
+			$patterns = // URI patterns.
+				wp_redirects::wpdb()->get_results(
+				            "SELECT `post_id`, `meta_value` AS `pattern`". // Meta value is pattern (possibly a regex pattern).
+				            " FROM `".wp_redirects::wpdb()->postmeta."` WHERE `meta_key` = 'wp_redirect_from_uri_pattern' AND `meta_value` != ''".
+				            " AND `post_id` IN(SELECT `ID` FROM `".wp_redirects::wpdb()->posts."`". // Every `redirect` post ID.
+				            "                    WHERE `post_type` = 'redirect' AND `post_status` = 'publish')");
+			if(!is_array($patterns) || !$patterns) return; // Nothing to do in this case.
 
-			$where = "`meta_key` = 'wp_redirect_from_uri_pattern' AND `meta_value` != ''";
-			$where .= " AND `post_id` IN(SELECT `ID` FROM `".$wpdb->posts."` WHERE `post_type` = 'redirect' AND `post_status` = 'publish')";
-
-			if(is_array($patterns = $wpdb->get_results("SELECT `post_id`, `meta_value` AS `pattern` FROM `".$wpdb->postmeta."` WHERE ".$where)))
+			foreach($patterns as $_pattern) // Iterate all redirection patterns.
 				{
-					foreach($patterns as $pattern)
-						{
-							$pattern_matches = $_m = FALSE; // Initialize.
-							$is_regex        = (stripos($pattern->pattern, 'regex:') === 0) ? TRUE : FALSE;
+					$_pattern_matches = $_is_regex = $_is_regex_matches = FALSE; // Initialize.
+					$_is_regex        = (stripos($_pattern->pattern, 'regex:') === 0) ? TRUE : FALSE;
 
-							if(!$is_regex && trim($pattern->pattern, '/') === trim($_SERVER['REQUEST_URI'], '/')) $pattern_matches = TRUE;
-							else if($is_regex && @preg_match(trim(preg_replace('/^regex\:/i', '', $pattern->pattern)), $_SERVER['REQUEST_URI'], $_m)) $pattern_matches = TRUE;
+					if(!$_is_regex && trim($_pattern->pattern, '/') === trim($_SERVER['REQUEST_URI'], '/'))
+						$_pattern_matches = TRUE; // Exact match in this case (after trimming).
 
-							if($pattern_matches && ($status = (is_numeric($status = get_post_meta($pattern->post_id, 'wp_redirect_status', TRUE))) ? $status : 301))
-								if(($to = (string)get_post_meta($pattern->post_id, 'wp_redirect_to', TRUE)) && ($to = preg_replace('/%%(.+?)%%/i', '', preg_replace_callback('/%%\\\$([^\[]+?)(.+?)%%/i', 'wp_redirects::_url_e_gprcs_value', (($is_regex && $_m) ? preg_replace('/%%([0-9]+)%%/ie', 'urlencode(@$_m[$1])', $to) : $to)))))
-									if(empty($_GET) || !get_post_meta($pattern->post_id, 'wp_redirect_to_w_query_vars', TRUE) || ($to = add_query_arg(urlencode_deep(wp_redirects::trim_strip_deep($_GET)), $to)))
-										if(($to = wp_redirects::trim(preg_replace('/(?<!\:)\/+/', '/', $to), 0, '?&=')))
-											wp_redirect($to, $status).exit();
-						}
+					else if($_is_regex && @preg_match(trim(preg_replace('/^regex\:/i', '', $_pattern->pattern)),
+					                                  $_SERVER['REQUEST_URI'], $_is_regex_matches)
+					) $_pattern_matches = TRUE; // A matching regular expression.
+
+					else continue; // Nothing to do in this case; NOT a matching pattern.
+
+					if(!($_to = (string)get_post_meta($_pattern->post_id, 'wp_redirect_to', TRUE)))
+						continue; // Stop here if there is nothing to redirect to.
+
+					$_to = (($_is_regex && $_is_regex_matches) // Regex replacement codes for captured groups.
+						? preg_replace_callback('/%%([0-9]+)%%/i', function ($m) use ($_is_regex_matches)
+							{
+								return urlencode((string)@$_is_regex_matches[$m[1]]);
+							}, $_to) : $_to);
+					$_to = preg_replace_callback('/%%\\\$([^\[]+?)(.+?)%%/i', 'wp_redirects::_url_e_gprcs_value', $_to);
+					$_to = preg_replace('/%%(.+?)%%/i', '', $_to); // Ditch any remaining replacement codes.
+
+					if(!empty($_GET) && get_post_meta($_pattern->post_id, 'wp_redirect_to_w_query_vars', TRUE))
+						$_to = add_query_arg(urlencode_deep(wp_redirects::trim_strip_deep($_GET)), $_to);
+
+					$_to = // Cleanup any double slashes left over by replacement codes.
+						wp_redirects::trim(preg_replace('/(?<!\:)\/+/', '/', $_to), 0, '?&=#');
+
+					$_status = (is_numeric($_status = get_post_meta($_pattern->post_id, 'wp_redirect_status', TRUE))) ? (integer)$_status : 301;
+
+					wp_redirect($_to, $_status).exit(); // Redirection URL w/ a possible custom status code.
 				}
+			unset($_pattern, $_is_regex, $_pattern_matches, $_is_regex_matches, $_to, $_status); // Housekeeping.
 		}
 
-	public static function _url_e_gprcs_value($_m)
+	public static function _url_e_gprcs_value($m)
 		{
-			if(is_array($_m) && in_array(array('_GET', '_POST', '_REQUEST', '_COOKIE', '_SESSION'), ($gprcs = strtoupper($_m[1])), TRUE))
-				if(strlen($element_w_brackets = $_m[2]) && preg_match('/^(?:(?:\[(["\'])[a-z0-9 \._\-]+?\\1\])|(?:\[[0-9]+\]))+$/i', $element_w_brackets))
+			if(isset($m[1], $m[2]) && in_array(($gprcs = strtoupper($m[1])), array('_GET', '_POST', '_REQUEST', '_COOKIE', '_SESSION'), TRUE))
+				if(strlen($element_w_brackets = $m[2]) && preg_match('/^(?:(?:\[(["\'])[a-z0-9 \._\-]+?\\1\])|(?:\[[0-9]+\]))+$/i', $element_w_brackets))
 					eval('$value = urlencode(trim(stripslashes((string)@$'.$gprcs.$element_w_brackets.')));');
 
-			return (isset($value)) ? urlencode(maybe_serialize($value)) : '';
+			return (!empty($value)) ? $value : ''; // Default to empty string.
 		}
 
 	public static function meta_boxes()
 		{
-			add_meta_box('wp-redirect', __('Redirect Configuration', 'wp-redirects'), 'wp_redirects::redirect_meta_box', 'redirect', 'normal', 'high');
+			add_meta_box('wp-redirect', __('Redirect Configuration', 'wp-redirects'), // One meta box (for now).
+			             'wp_redirects::redirect_meta_box', 'redirect', 'normal', 'high');
 		}
 
 	public static function redirect_meta_box($post)
 		{
-			if(is_object($post) && !empty($post->ID) && ($post_id = $post->ID))
-				{
-					echo '<label for="wp-redirect-status">Redirection Status (optional HTTP status code):</label><br />'."\n";
-					echo '<input type="text" id="wp-redirect-status" name="wp_redirect_status" style="width:100%;" value="'.esc_attr(get_post_meta($post_id, 'wp_redirect_status', TRUE)).'" /><br />'."\n";
-					echo __('This is optional. It defaults to a value of <code>301</code> for redirection.', 'wp-redirects')."\n";
+			if(!is_object($post) || empty($post->ID) || !($post_id = $post->ID))
+				return; // No can-do. Should NOT happen; but just in case.
 
-					echo '<div style="margin:10px 0 10px 0; line-height:1px; height:1px; background:#EEEEEE;"></div>'."\n";
+			echo '<label for="wp-redirect-status">Redirection Status (optional HTTP status code):</label><br />'."\n";
+			echo '<input type="text" id="wp-redirect-status" name="wp_redirect_status" style="width:100%;" value="'.esc_attr(get_post_meta($post_id, 'wp_redirect_status', TRUE)).'" /><br />'."\n";
+			echo __('This is optional. It defaults to a value of <code>301</code> for redirection.', 'wp-redirects')."\n";
 
-					echo '<label for="wp-redirect-to">'.__('<strong>Redirection URL *</strong> (a full URL, absolutely required):', 'wp-redirects').'</label><br />'."\n";
-					echo '<input type="text" id="wp-redirect-to" name="wp_redirect_to" style="width:100%;" value="'.esc_attr(get_post_meta($post_id, 'wp_redirect_to', TRUE)).'" /><br />'."\n";
-					echo '<input type="checkbox" id="wp-redirect-to-w-query-vars" name="wp_redirect_to_w_query_vars" value="1" '.((get_post_meta($post_id, 'wp_redirect_to_w_query_vars', TRUE)) ? ' checked="checked"' : '').' /> <label for="wp-redirect-to-w-query-vars">'.__('Yes, pass all <code>$_GET</code> query string variables to this URL.', 'wp-redirects').'</label> <a href="#" onclick="alert(\''.__('If checked, all `$_GET` query string variables will be passed to the Redirection URL (adding to any that already exist).', 'wp-redirects').'\\n\\n'.__('It is also possible to use specific Replacement Codes in your Redirection URL, referencing `$_GET`, `$_POST`, `$_REQUEST`, `$_COOKIE`, or `$_SESSION` values.', 'wp-redirects').'\\n\\n'.__('Example Replacement Codes:', 'wp-redirects').'\\n%%$_REQUEST[\\\'my_var\\\']%%\\n%%$_POST[\\\'my-array\\\'][0]%%\\n%%$_GET[\\\'my\\\'][\\\'var\\\']%%\\n\\n'.__('* If you\\\'re using an advanced regular expression, there are Replacement Codes to reference parenthesized subpatterns.', 'wp-redirects').'\\n\\n'.__('Example Replacement Codes:', 'wp-redirects').'\\n%%0%% '.__('(string matching the full pattern)', 'wp-redirects').'\\n%%1%% '.__('(1st parenthesized subpattern)', 'wp-redirects').'\\n%%2%% '.__('(2nd parenthesized subpattern)', 'wp-redirects').'\'); return false;" tabindex="-1">[?]</a>'."\n";
+			echo '<div style="margin:10px 0 10px 0; line-height:1px; height:1px; background:#EEEEEE;"></div>'."\n";
 
-					echo '<div style="margin:10px 0 10px 0; line-height:1px; height:1px; background:#EEEEEE;"></div>'."\n";
+			echo '<label for="wp-redirect-to">'.__('<strong>Redirection URL *</strong> (a full URL, absolutely required):', 'wp-redirects').'</label><br />'."\n";
+			echo '<input type="text" id="wp-redirect-to" name="wp_redirect_to" style="width:100%;" value="'.esc_attr(get_post_meta($post_id, 'wp_redirect_to', TRUE)).'" /><br />'."\n";
+			echo '<input type="checkbox" id="wp-redirect-to-w-query-vars" name="wp_redirect_to_w_query_vars" value="1" '.((get_post_meta($post_id, 'wp_redirect_to_w_query_vars', TRUE)) ? ' checked="checked"' : '').' /> <label for="wp-redirect-to-w-query-vars">'.__('Yes, pass all <code>$_GET</code> query string variables to this URL.', 'wp-redirects').'</label> <a href="#" onclick="alert(\''.__('If checked, all `$_GET` query string variables will be passed to the Redirection URL (adding to any that already exist).', 'wp-redirects').'\\n\\n'.__('It is also possible to use specific Replacement Codes in your Redirection URL, referencing `$_GET`, `$_POST`, `$_REQUEST`, `$_COOKIE`, or `$_SESSION` values.', 'wp-redirects').'\\n\\n'.__('Example Replacement Codes:', 'wp-redirects').'\\n%%$_REQUEST[\\\'my_var\\\']%%\\n%%$_POST[\\\'my-array\\\'][0]%%\\n%%$_GET[\\\'my\\\'][\\\'var\\\']%%\\n\\n'.__('* If you\\\'re using an advanced regular expression, there are Replacement Codes to reference parenthesized subpatterns.', 'wp-redirects').'\\n\\n'.__('Example Replacement Codes:', 'wp-redirects').'\\n%%0%% '.__('(string matching the full pattern)', 'wp-redirects').'\\n%%1%% '.__('(1st parenthesized subpattern)', 'wp-redirects').'\\n%%2%% '.__('(2nd parenthesized subpattern)', 'wp-redirects').'\'); return false;" tabindex="-1">[?]</a>'."\n";
 
-					echo '<label for="wp-redirect-from-uri-pattern">'.__('Additional Redirections From (optional pattern matching):', 'wp-redirects').'</label><br />'."\n";
-					echo '<input type="text" id="wp-redirect-from-uri-pattern" name="wp_redirect_from_uri_pattern" style="width:100%; font-family:monospace;" value="'.esc_attr(get_post_meta($post_id, 'wp_redirect_from_uri_pattern', TRUE)).'" /><br />'."\n";
-					echo __('This is optional. By default, redirection simply occurs <strong>from</strong> the Permalink for this Redirection.', 'wp-redirects').'<br /><br />'."\n";
-					echo __('<strong>Redirecting from additional locations:</strong> This can be accomplished here with a pattern. By default, a pattern supplied here is caSe sensitive, using one exact comparison against <code>$_SERVER[\'REQUEST_URI\']</code>. However, it is possible to precede your pattern with: <code>regex:</code> to enable advanced regular expression pattern matching. Example: <code>regex: /pattern/i</code>. It is also possible to use regex Replacement Codes in your Redirection URL above, referencing any parenthesized subpatterns. For example: <code>%%0%%</code>, <code>%%1%%</code>, <code>%%2%%</code>.', 'wp-redirects')."\n";
+			echo '<div style="margin:10px 0 10px 0; line-height:1px; height:1px; background:#EEEEEE;"></div>'."\n";
 
-					wp_nonce_field('wp-redirect-meta-boxes', 'wp_redirect_meta_boxes');
-				}
+			echo '<label for="wp-redirect-from-uri-pattern">'.__('Additional Redirections From (optional pattern matching):', 'wp-redirects').'</label><br />'."\n";
+			echo '<input type="text" id="wp-redirect-from-uri-pattern" name="wp_redirect_from_uri_pattern" style="width:100%; font-family:monospace;" value="'.esc_attr(get_post_meta($post_id, 'wp_redirect_from_uri_pattern', TRUE)).'" /><br />'."\n";
+			echo __('This is optional. By default, redirection simply occurs <strong>from</strong> the Permalink for this Redirection.', 'wp-redirects').'<br /><br />'."\n";
+			echo __('<strong>Redirecting from additional locations:</strong> This can be accomplished here with a pattern. By default, a pattern supplied here is caSe sensitive, using one exact comparison against <code>$_SERVER[\'REQUEST_URI\']</code>. However, it is possible to precede your pattern with: <code>regex:</code> to enable advanced regular expression pattern matching. Example: <code>regex: /pattern/i</code>. It is also possible to use regex Replacement Codes in your Redirection URL above, referencing any parenthesized subpatterns. For example: <code>%%0%%</code>, <code>%%1%%</code>, <code>%%2%%</code>.', 'wp-redirects')."\n";
+
+			wp_nonce_field('wp-redirect-meta-boxes', 'wp_redirect_meta_boxes');
 		}
 
 	public static function meta_boxes_save($post_id)
@@ -233,10 +253,12 @@ class wp_redirects
 			$chars = (is_string($chars)) ? $chars : " \r\n\t\0\x0B";
 			$chars = (is_string($extra_chars)) ? $chars.$extra_chars : $chars;
 
-			if(is_array($value))
+			if(is_array($value) || is_object($value)) // Deeply.
 				{
-					foreach($value as &$r)
-						$r = wp_redirects::trim_deep($r, $chars);
+					foreach($value as &$_value)
+						$_value = wp_redirects::trim_deep($_value, $chars);
+					unset($_value); // Housekeeping.
+
 					return $value;
 				}
 			return trim((string)$value, $chars);
@@ -258,5 +280,11 @@ class wp_redirects
 		{
 			wp_redirects::caps('deactivate');
 			flush_rewrite_rules();
+		}
+
+	/** @return \wpdb */
+	public static function wpdb()
+		{
+			return $GLOBALS['wpdb'];
 		}
 }
