@@ -9,7 +9,7 @@ License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
 Contributors: WebSharks
-Donate link: http://www.s2member.com/donate/
+Donate link: http://www.websharks-inc.com/r/wp-theme-plugin-donation/
 Tags: redirect, redirects, 301 redirects, links, relocate, SEO, post type, post types, utilities, posts, pages
 
 Create Redirects! This plugin adds a new Post Type. Redirect from anywhere — to anywhere. A very lightweight plugin!
