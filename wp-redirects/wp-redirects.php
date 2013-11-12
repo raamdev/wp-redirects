@@ -61,7 +61,7 @@ class wp_redirects
 			(
 				'public'       => TRUE, 'show_admin_column' => TRUE,
 				'hierarchical' => TRUE, // This will use category labels.
-				'rewrite'      => array('slug' => 'rcat', 'with_front' => FALSE),
+				'rewrite'      => array('slug' => 'redirect-category', 'with_front' => FALSE),
 				'capabilities' => array('assign_terms' => 'edit_redirects',
 				                        'edit_terms'   => 'edit_redirects',
 				                        'manage_terms' => 'edit_others_redirects',
