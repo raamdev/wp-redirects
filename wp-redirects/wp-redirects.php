@@ -100,6 +100,8 @@ class wp_redirects
 								$_role->remove_cap($_cap);
 								break;
 					}
+			unset($_role, $_cap); // Housekeeping.
+
 			$edit_caps = array // The ability to edit/publish/delete Redirects.
 			(
 				'edit_redirects',
