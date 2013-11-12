@@ -57,7 +57,7 @@ class wp_redirects
 			);
 			register_post_type('redirect', $post_type_args);
 
-			$taxonomy_args = array // Redirect categories.
+			$taxonomy_args = array // Categories.
 			(
 				'public'       => TRUE, 'show_admin_column' => TRUE,
 				'hierarchical' => TRUE, // This will use category labels.
@@ -72,7 +72,7 @@ class wp_redirects
 
 	public static function caps($action)
 		{
-			$all_caps = array // The ability to manage Redirects (all caps).
+			$all_caps = array // The ability to manage (all caps).
 			(
 				'edit_redirects',
 				'edit_others_redirects',
@@ -102,7 +102,7 @@ class wp_redirects
 					}
 			unset($_role, $_cap); // Housekeeping.
 
-			$edit_caps = array // The ability to edit/publish/delete Redirects.
+			$edit_caps = array // The ability to edit/publish/delete.
 			(
 				'edit_redirects',
 				'edit_published_redirects',
