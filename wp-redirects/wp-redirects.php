@@ -21,8 +21,9 @@ class wp_redirects
 {
 	public static function init()
 		{
+			load_plugin_textdomain('wp-redirects');
+
 			wp_redirects::register();
-			wp_redirects::create_taxonomy();
 
 			wp_redirects::redirect_uri_patterns();
 			add_action('wp', 'wp_redirects::redirect_redirects', 1);
@@ -33,16 +34,14 @@ class wp_redirects
 
 	public static function register()
 		{
-			$args           = array
+			$post_type_args           = array
 			(
-				'public'              => TRUE,
-				'map_meta_cap'        => TRUE,
-				'exclude_from_search' => TRUE,
-				'capability_type'     => array('redirect', 'redirects'),
-				'rewrite'             => array('slug' => 'r', 'with_front' => FALSE),
-				'supports'            => array('title', 'author', 'revisions')
+				'public'       => TRUE, 'exclude_from_search' => TRUE,
+				'map_meta_cap' => TRUE, 'capability_type' => array('redirect', 'redirects'),
+				'rewrite'      => array('slug' => 'r', 'with_front' => FALSE),
+				'supports'     => array('title', 'author', 'revisions')
 			);
-			$args['labels'] = array
+			$post_type_args['labels'] = array
 			(
 				'name'               => __('Redirects', 'wp-redirects'),
 				'singular_name'      => __('Redirect', 'wp-redirects'),
@@ -56,54 +55,64 @@ class wp_redirects
 				'not_found'          => __('No Redirect found', 'wp-redirects'),
 				'not_found_in_trash' => __('No Redirects found in Trash', 'wp-redirects')
 			);
-			register_post_type('redirect', $args);
-		}
+			register_post_type('redirect', $post_type_args);
 
-	public static function create_taxonomy()
-		{
-			$args           = array
+			$taxonomy_args = array // Redirect categories.
 			(
-				'hierarchical'      => TRUE,
-				'show_ui'           => TRUE,
-				'show_admin_column' => TRUE,
-				'query_var'         => TRUE,
-				'rewrite'           => array('slug' => 'rcat'),
+				'public'       => TRUE, 'show_admin_column' => TRUE,
+				'hierarchical' => TRUE, // This will use category labels.
+				'rewrite'      => array('slug' => 'rcat', 'with_front' => FALSE),
+				'capabilities' => array('assign_terms' => 'edit_redirects',
+				                        'edit_terms'   => 'edit_redirects',
+				                        'manage_terms' => 'edit_others_redirects',
+				                        'delete_terms' => 'delete_others_redirects')
 			);
-			$args['labels'] = array
-			(
-				'name'              => __('Categories', 'wp-redirects'),
-				'singular_name'     => __('Category', 'wp-redirects'),
-				'search_items'      => __('Search Categories', 'wp-redirects'),
-				'all_items'         => __('All Categories', 'wp-redirects'),
-				'parent_item'       => __('Parent Category', 'wp-redirects'),
-				'parent_item_colon' => __('Parent Category:', 'wp-redirects'),
-				'edit_item'         => __('Edit Category', 'wp-redirects'),
-				'update_item'       => __('Update Category', 'wp-redirects'),
-				'add_new_item'      => __('Add New Category', 'wp-redirects'),
-				'new_item_name'     => __('New Category Name', 'wp-redirects'),
-				'menu_name'         => __('Categories', 'wp-redirects'),
-			);
-			register_taxonomy('redirect_category', array('redirect'), $args);
+			register_taxonomy('redirect_category', array('redirect'), $taxonomy_args);
 		}
 
 	public static function caps($action)
 		{
-			$caps = array
+			$all_caps = array // The ability to manage Redirects (all caps).
 			(
 				'edit_redirects',
 				'edit_others_redirects',
 				'edit_published_redirects',
 				'edit_private_redirects',
+
 				'publish_redirects',
+
 				'delete_redirects',
 				'delete_private_redirects',
 				'delete_published_redirects',
 				'delete_others_redirects',
+
 				'read_private_redirects'
 			);
-			foreach(array('administrator') as $_role)
+			foreach(apply_filters('wp_redirect_roles_all_caps', array('administrator')) as $_role)
 				if(is_object($_role = & get_role($_role)))
-					foreach($caps as $_cap) switch($action)
+					foreach($all_caps as $_cap) switch($action)
+					{
+						case 'activate':
+								$_role->add_cap($_cap);
+								break;
+
+						case 'deactivate':
+								$_role->remove_cap($_cap);
+								break;
+					}
+			$edit_caps = array // The ability to edit/publish/delete Redirects.
+			(
+				'edit_redirects',
+				'edit_published_redirects',
+
+				'publish_redirects',
+
+				'delete_redirects',
+				'delete_published_redirects'
+			);
+			foreach(apply_filters('wp_redirect_roles_edit_caps', array('administrator', 'editor', 'author')) as $_role)
+				if(is_object($_role = & get_role($_role)))
+					foreach($edit_caps as $_cap) switch($action)
 					{
 						case 'activate':
 								$_role->add_cap($_cap);
@@ -142,7 +151,7 @@ class wp_redirects
 				wp_redirects::wpdb()->get_results(
 				            "SELECT `post_id`, `meta_value` AS `pattern`". // Meta value is pattern (possibly a regex pattern).
 				            " FROM `".wp_redirects::wpdb()->postmeta."` WHERE `meta_key` = 'wp_redirect_from_uri_pattern' AND `meta_value` != ''".
-				            " AND `post_id` IN(SELECT `ID` FROM `".wp_redirects::wpdb()->posts."`". // Every `redirect` post ID.
+				            " AND `post_id` IN(SELECT `ID` FROM `".wp_redirects::wpdb()->posts."`". // Every `redirect` ID.
 				            "                    WHERE `post_type` = 'redirect' AND `post_status` = 'publish')");
 			if(!is_array($patterns) || !$patterns) return; // Nothing to do in this case.
 
