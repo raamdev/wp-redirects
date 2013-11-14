@@ -301,6 +301,7 @@ class wp_redirects // WP Redirects; from anywhere — to anywhere.
 
 	public static function activate()
 		{
+			wp_redirects::init();
 			wp_redirects::register();
 			wp_redirects::caps('activate');
 			flush_rewrite_rules();
