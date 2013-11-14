@@ -7,7 +7,7 @@ Plugin Name: WP Redirects
 Author URI: http://www.websharks-inc.com/
 Author: WebSharks, Inc. (Jason Caldwell)
 
-Plugin URI: http://www.s2member.com/kb/wp-redirects-plugin
+Plugin URI: http://www.websharks-inc.com/product/wp-redirects/
 Description: Create Redirects! This plugin adds a new Post Type. Redirect from anywhere — to anywhere. A very lightweight plugin!
 */
 if(!defined('WPINC')) // MUST have WordPress.
