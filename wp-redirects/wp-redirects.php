@@ -13,15 +13,27 @@ Description: Create Redirects! This plugin adds a new Post Type. Redirect from a
 if(!defined('WPINC')) // MUST have WordPress.
 	exit('Do NOT access this file directly: '.basename(__FILE__));
 
-add_action('init', 'wp_redirects::init', 1);
-register_activation_hook(__FILE__, 'wp_redirects::activate');
-register_deactivation_hook(__FILE__, 'wp_redirects::deactivate');
+if(!defined('WP_REDIRECT_ROLES_ALL_CAPS')) define('WP_REDIRECT_ROLES_ALL_CAPS', 'administrator');
+if(!defined('WP_REDIRECT_ROLES_EDIT_CAPS')) define('WP_REDIRECT_ROLES_EDIT_CAPS', 'administrator,editor,author');
 
-class wp_redirects
+class wp_redirects // WP Redirects; from anywhere — to anywhere.
 {
-	public static function init()
+	public static $roles_all_caps = array(); // WP Roles; as array.
+	public static $roles_edit_caps = array(); // WP Roles; as array.
+
+	public static function init() // Initialize WP Redirects.
 		{
 			load_plugin_textdomain('wp-redirects');
+
+			if(WP_REDIRECT_ROLES_ALL_CAPS) // Specific Roles?
+				wp_redirects::$roles_all_caps = // Convert these to an array.
+					preg_split('/[\s;,]+/', WP_REDIRECT_ROLES_ALL_CAPS, NULL, PREG_SPLIT_NO_EMPTY);
+			wp_redirects::$roles_all_caps = apply_filters('wp_redirect_roles_all_caps', wp_redirects::$roles_all_caps);
+
+			if(WP_REDIRECT_ROLES_EDIT_CAPS) // Specific Roles?
+				wp_redirects::$roles_edit_caps = // Convert these to an array.
+					preg_split('/[\s;,]+/', WP_REDIRECT_ROLES_EDIT_CAPS, NULL, PREG_SPLIT_NO_EMPTY);
+			wp_redirects::$roles_edit_caps = apply_filters('wp_redirect_roles_edit_caps', wp_redirects::$roles_edit_caps);
 
 			wp_redirects::register();
 
@@ -88,19 +100,22 @@ class wp_redirects
 
 				'read_private_redirects'
 			);
-			foreach(apply_filters('wp_redirect_roles_all_caps', array('administrator')) as $_role)
-				if(is_object($_role = & get_role($_role)))
-					foreach($all_caps as $_cap) switch($action)
-					{
-						case 'activate':
-								$_role->add_cap($_cap);
-								break;
+			if($action === 'deactivate') // All on deactivate.
+				$_roles = array_keys($GLOBALS['wp_roles']->roles);
+			else $_roles = wp_redirects::$roles_all_caps;
 
-						case 'deactivate':
-								$_role->remove_cap($_cap);
-								break;
-					}
-			unset($_role, $_cap); // Housekeeping.
+			foreach($_roles as $_role) if(is_object($_role = get_role($_role)))
+				foreach($all_caps as $_cap) switch($action)
+				{
+					case 'activate':
+							$_role->add_cap($_cap);
+							break;
+
+					case 'deactivate':
+							$_role->remove_cap($_cap);
+							break;
+				}
+			unset($_roles, $_role, $_cap); // Housekeeping.
 
 			$edit_caps = array // The ability to edit/publish/delete.
 			(
@@ -112,19 +127,22 @@ class wp_redirects
 				'delete_redirects',
 				'delete_published_redirects'
 			);
-			foreach(apply_filters('wp_redirect_roles_edit_caps', array('administrator', 'editor', 'author')) as $_role)
-				if(is_object($_role = & get_role($_role)))
-					foreach($edit_caps as $_cap) switch($action)
-					{
-						case 'activate':
-								$_role->add_cap($_cap);
-								break;
+			if($action === 'deactivate') // All on deactivate.
+				$_roles = array_keys($GLOBALS['wp_roles']->roles);
+			else $_roles = wp_redirects::$roles_edit_caps;
 
-						case 'deactivate':
-								$_role->remove_cap($_cap);
-								break;
-					}
-			unset($_role, $_cap); // Housekeeping.
+			foreach($_roles as $_role) if(is_object($_role = get_role($_role)))
+				foreach((($action === 'deactivate') ? $all_caps : $edit_caps) as $_cap) switch($action)
+				{
+					case 'activate':
+							$_role->add_cap($_cap);
+							break;
+
+					case 'deactivate':
+							$_role->remove_cap($_cap);
+							break;
+				}
+			unset($_roles, $_role, $_cap); // Housekeeping.
 		}
 
 	public static function redirect_redirects()
@@ -300,3 +318,7 @@ class wp_redirects
 			return $GLOBALS['wpdb'];
 		}
 }
+
+add_action('init', 'wp_redirects::init', 1);
+register_activation_hook(__FILE__, 'wp_redirects::activate');
+register_deactivation_hook(__FILE__, 'wp_redirects::deactivate');
