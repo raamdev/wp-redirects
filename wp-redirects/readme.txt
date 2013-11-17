@@ -50,8 +50,8 @@ NOTE: There are also some WordPress filters integrated into the code for this pl
 
 = WP Redirects is very easy to install (instructions) =
 1. Upload the `/wp-redirects` folder to your `/wp-content/plugins/` directory.
-2. Activate the plugin through the `Plugins` menu in WordPress®.
-3. Create Redirects in WordPress® (see: Dashboard -› Redirects).
+2. Activate the plugin through the **Plugins** menu in WordPress®.
+3. Create Redirects in WordPress® (see: **Dashboard -› Redirects**).
 
 == Changelog ==
 

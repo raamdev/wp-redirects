@@ -64,7 +64,7 @@ class wp_redirects // WP Redirects; from anywhere — to anywhere.
 				'all_items'          => __('All Redirects', 'wp-redirects'),
 				'view_item'          => __('View Redirect', 'wp-redirects'),
 				'search_items'       => __('Search Redirects', 'wp-redirects'),
-				'not_found'          => __('No Redirect found', 'wp-redirects'),
+				'not_found'          => __('No Redirects found', 'wp-redirects'),
 				'not_found_in_trash' => __('No Redirects found in Trash', 'wp-redirects')
 			);
 			register_post_type('redirect', $post_type_args);
