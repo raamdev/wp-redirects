@@ -16,7 +16,7 @@ Create Redirects! This plugin adds a new Post Type. Redirect from anywhere — t
 
 == Description ==
 
-This plugin is VERY simple. There are NO configuration options necessary.
+This plugin is VERY simple; NO configuration options necessary.
 
 This plugin adds a new Post Type. This plugin makes it SUPER easy to create redirections on your site. From anywhere — to anywhere! It even creates redirection links for you (i.e. Redirect Permalinks — using these is optional however). This is a very lightweight plugin.
 
@@ -24,7 +24,7 @@ After installing this plugin, create a new Redirect (find menu item on the left 
 
 == Frequently Asked Questions ==
 
-#### Who can manage Redirects in the Dashboard?
+= Who can manage Redirects in the Dashboard? =
 
 By default, only WordPress® Administrators can manage (i.e. create/edit/delete/manage) Redirects. Editors and Authors can create/edit/delete their own Redirects, but permissions are limited for Editors/Authors. If you would like to give other WordPress Roles the Capabilities required, please use a plugin like [Enhanced Capability Manager](http://wordpress.org/extend/plugins/capability-manager-enhanced/).
 
@@ -48,7 +48,8 @@ NOTE: There are also some WordPress filters integrated into the code for this pl
 
 == Installation ==
 
-= WP Redirects is very easy to install (instructions) =
+= WP Redirects is Very Easy to Install =
+
 1. Upload the `/wp-redirects` folder to your `/wp-content/plugins/` directory.
 2. Activate the plugin through the **Plugins** menu in WordPress®.
 3. Create Redirects in WordPress® (see: **Dashboard -› Redirects**).
@@ -56,4 +57,5 @@ NOTE: There are also some WordPress filters integrated into the code for this pl
 == Changelog ==
 
 = v130206 =
+
  * Initial release.
