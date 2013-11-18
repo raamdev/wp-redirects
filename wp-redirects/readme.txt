@@ -12,9 +12,11 @@ Contributors: WebSharks
 Donate link: http://www.websharks-inc.com/r/wp-theme-plugin-donation/
 Tags: redirect, redirects, 301 redirects, links, relocate, SEO, post type, post types, utilities, posts, pages
 
-Create Redirects! This plugin adds a new Post Type. Redirect from anywhere — to anywhere. A very lightweight plugin!
+Create Redirects! This plugin adds a new Post Type.
 
 == Description ==
+
+Redirect from anywhere — to anywhere. A very lightweight plugin!
 
 This plugin is VERY simple; NO configuration options necessary.
 
