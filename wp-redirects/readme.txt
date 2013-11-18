@@ -20,7 +20,7 @@ Redirect from anywhere — to anywhere. A very lightweight plugin!
 
 This plugin is VERY simple; NO configuration options necessary.
 
-This plugin adds a new Post Type. This plugin makes it SUPER easy to create redirections on your site. From anywhere — to anywhere! It even creates redirection links for you (i.e. Redirect Permalinks — using these is optional however). This is a very lightweight plugin.
+This plugin adds a new Post Type; making it SUPER easy to create redirections on your site. From anywhere — to anywhere! It even creates redirection links for you (i.e. Redirect Permalinks — using these is optional however).
 
 After installing this plugin, create a new Redirect (find menu item on the left in your Dashboard). Redirects can be simple or complex. You can even use regular expression patterns! It is also possible to control the HTTP status code that is sent to a browser during redirection.
 
