@@ -1,6 +1,6 @@
 === WP Redirects ===
 
-Stable tag: 130206
+Stable tag: 131121
 Requires at least: 3.2
 Tested up to: 3.7.1
 Text Domain: wp-redirects
@@ -78,6 +78,11 @@ Released under the terms of the [GNU General Public License](http://www.gnu.org/
 	- Font Awesome <http://fortawesome.github.io/Font-Awesome/>
 
 == Changelog ==
+
+= v131121 =
+
+* General code cleanup and optimizatioon.
+* Adding support for categories and tags against Redirects.
 
 = v130206 =
 
