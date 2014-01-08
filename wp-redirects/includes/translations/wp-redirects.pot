@@ -1,0 +1,154 @@
+# Copyright (C) 2014 WP Redirects
+# This file is distributed under the same license as the WP Redirects package.
+msgid ""
+msgstr ""
+"Project-Id-Version: WP Redirects 131121\n"
+"Report-Msgid-Bugs-To: http://wordpress.org/tag/wp-redirects\n"
+"POT-Creation-Date: 2014-01-08 06:00:06+00:00\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"PO-Revision-Date: 2014-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+
+#: wp-redirects.php:58
+msgid "Redirects"
+msgstr ""
+
+#: wp-redirects.php:59
+msgid "Redirect"
+msgstr ""
+
+#: wp-redirects.php:60
+msgid "Add Redirect"
+msgstr ""
+
+#: wp-redirects.php:61
+msgid "Add New Redirect"
+msgstr ""
+
+#: wp-redirects.php:62
+msgid "Edit Redirect"
+msgstr ""
+
+#: wp-redirects.php:63
+msgid "New Redirect"
+msgstr ""
+
+#: wp-redirects.php:64
+msgid "All Redirects"
+msgstr ""
+
+#: wp-redirects.php:65
+msgid "View Redirect"
+msgstr ""
+
+#: wp-redirects.php:66
+msgid "Search Redirects"
+msgstr ""
+
+#: wp-redirects.php:67
+msgid "No Redirects found"
+msgstr ""
+
+#: wp-redirects.php:68
+msgid "No Redirects found in Trash"
+msgstr ""
+
+#: wp-redirects.php:227
+msgid "Redirect Configuration"
+msgstr ""
+
+#: wp-redirects.php:238
+msgid ""
+"This is optional. It defaults to a value of <code>301</code> for redirection."
+msgstr ""
+
+#: wp-redirects.php:242
+msgid "<strong>Redirection URL *</strong> (a full URL, absolutely required):"
+msgstr ""
+
+#: wp-redirects.php:244
+msgid "Yes, pass all <code>$_GET</code> query string variables to this URL."
+msgstr ""
+
+#: wp-redirects.php:244
+msgid ""
+"If checked, all `$_GET` query string variables will be passed to the "
+"Redirection URL (adding to any that already exist)."
+msgstr ""
+
+#: wp-redirects.php:244
+msgid ""
+"It is also possible to use specific Replacement Codes in your Redirection "
+"URL, referencing `$_GET`, `$_POST`, `$_REQUEST`, `$_COOKIE`, or `$_SESSION` "
+"values."
+msgstr ""
+
+#: wp-redirects.php:244
+msgid "Example Replacement Codes:"
+msgstr ""
+
+#: wp-redirects.php:244
+msgid ""
+"* If you\\'re using an advanced regular expression, there are Replacement "
+"Codes to reference parenthesized subpatterns."
+msgstr ""
+
+#: wp-redirects.php:244
+msgid "(string matching the full pattern)"
+msgstr ""
+
+#: wp-redirects.php:244
+msgid "(1st parenthesized subpattern)"
+msgstr ""
+
+#: wp-redirects.php:244
+msgid "(2nd parenthesized subpattern)"
+msgstr ""
+
+#: wp-redirects.php:248
+msgid "Additional Redirections From (optional pattern matching):"
+msgstr ""
+
+#: wp-redirects.php:250
+msgid ""
+"This is optional. By default, redirection simply occurs <strong>from</"
+"strong> the Permalink for this Redirection."
+msgstr ""
+
+#: wp-redirects.php:251
+msgid ""
+"<strong>Redirecting from additional locations:</strong> This can be "
+"accomplished here with a pattern. By default, a pattern supplied here is "
+"caSe sensitive, using one exact comparison against <code>$_SERVER"
+"['REQUEST_URI']</code>. However, it is possible to precede your pattern "
+"with: <code>regex:</code> to enable advanced regular expression pattern "
+"matching. Example: <code>regex: /pattern/i</code>. It is also possible to "
+"use regex Replacement Codes in your Redirection URL above, referencing any "
+"parenthesized subpatterns. For example: <code>%%0%%</code>, <code>%%1%%</"
+"code>, <code>%%2%%</code>."
+msgstr ""
+
+#. Plugin Name of the plugin/theme
+msgid "WP Redirects"
+msgstr ""
+
+#. Plugin URI of the plugin/theme
+msgid "http://www.websharks-inc.com/product/wp-redirects/"
+msgstr ""
+
+#. Description of the plugin/theme
+msgid ""
+"Create Redirects! This plugin adds a new Post Type. Redirect from anywhere — "
+"to anywhere. A very lightweight plugin!"
+msgstr ""
+
+#. Author of the plugin/theme
+msgid "WebSharks, Inc. (Jason Caldwell)"
+msgstr ""
+
+#. Author URI of the plugin/theme
+msgid "http://www.websharks-inc.com/"
+msgstr ""
