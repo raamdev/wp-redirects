@@ -150,14 +150,19 @@ class wp_redirects // WP Redirects; from anywhere — to anywhere.
 		if(!($is_singular_redirect = is_singular('redirect')))
 			return; // Nothing to do in this case.
 
-		$to = (string)get_post_meta(get_the_ID(), 'wp_redirect_to', TRUE);
+		$redirect_id = get_the_ID(); // Pull this one time only.
+
+		$to = (string)get_post_meta($redirect_id, 'wp_redirect_to', TRUE);
 		$to = preg_replace_callback('/%%\\\$([^\[]+?)(.+?)%%/i', 'wp_redirects::_url_e_gprcs_value', $to);
 		$to = preg_replace('/%%(.+?)%%/i', '', $to); // Ditch any remaining replacement codes.
 
 		$to = // Cleanup any double slashes left over by replacement codes.
 			wp_redirects::trim(preg_replace('/(?<!\:)\/+/', '/', $to), 0, '?&=#');
 
-		$status = (is_numeric($status = get_post_meta(get_the_ID(), 'wp_redirect_status', TRUE))) ? (integer)$status : 301;
+		if($to && !empty($_GET) && get_post_meta($redirect_id, 'wp_redirect_to_w_query_vars', TRUE))
+			$to = add_query_arg(urlencode_deep(wp_redirects::trim_strip_deep($_GET)), $to);
+
+		$status = (is_numeric($status = get_post_meta($redirect_id, 'wp_redirect_status', TRUE))) ? (integer)$status : 301;
 
 		if($to && $status) // Redirection URL w/ a possible custom status code.
 			wp_redirect($to, $status).exit(); // It's a good day in Eureka :-)
@@ -200,11 +205,11 @@ class wp_redirects // WP Redirects; from anywhere — to anywhere.
 			$_to = preg_replace_callback('/%%\\\$([^\[]+?)(.+?)%%/i', 'wp_redirects::_url_e_gprcs_value', $_to);
 			$_to = preg_replace('/%%(.+?)%%/i', '', $_to); // Ditch any remaining replacement codes.
 
-			if(!empty($_GET) && get_post_meta($_pattern->post_id, 'wp_redirect_to_w_query_vars', TRUE))
-				$_to = add_query_arg(urlencode_deep(wp_redirects::trim_strip_deep($_GET)), $_to);
-
 			$_to = // Cleanup any double slashes left over by replacement codes.
 				wp_redirects::trim(preg_replace('/(?<!\:)\/+/', '/', $_to), 0, '?&=#');
+
+			if($_to && !empty($_GET) && get_post_meta($_pattern->post_id, 'wp_redirect_to_w_query_vars', TRUE))
+				$_to = add_query_arg(urlencode_deep(wp_redirects::trim_strip_deep($_GET)), $_to);
 
 			$_status = (is_numeric($_status = get_post_meta($_pattern->post_id, 'wp_redirect_status', TRUE))) ? (integer)$_status : 301;
 
