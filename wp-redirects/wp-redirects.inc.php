@@ -11,7 +11,6 @@ namespace wp_redirects // Root namespace.
 	{
 		class plugin // Base plugin class.
 		{
-
 			public $is_pro = FALSE; // Lite version flag.
 
 			public $file = ''; // Defined by class constructor.
@@ -240,7 +239,6 @@ namespace wp_redirects // Root namespace.
 
 					wp_redirect($to, $status).exit(); // It's a good day in Eureka :-)
 				}
-
 				wp_redirect(home_url('/'), 301).exit(); // Default redirection (ALWAYS redirect).
 			}
 
@@ -436,7 +434,6 @@ namespace wp_redirects // Root namespace.
 						{
 							echo date(get_option('date_format'), get_post_meta($post_id, 'wp_redirect_last_access', TRUE));
 						}
-
 						break;
 				}
 			}

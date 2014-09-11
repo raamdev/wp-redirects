@@ -19,7 +19,6 @@ if(version_compare(PHP_VERSION, '5.3', '<'))
 	{
 		echo __('<div class="error"><p>Plugin NOT active. This version of WP Redirects requires PHP v5.3+.</p></div>', 'wp-redirects');
 	}
-
 	add_action('all_admin_notices', 'wp_redirects_php53_dashboard_notice');
 }
 else require_once dirname(__FILE__).'/wp-redirects.inc.php';
