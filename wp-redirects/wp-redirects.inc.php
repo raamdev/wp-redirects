@@ -451,6 +451,8 @@ namespace wp_redirects // Root namespace.
 
 			public static function admin_column_orderby($query)
 			{
+				/** @var \WP_Query $query */
+
 				if(!is_admin())
 					return;
 
