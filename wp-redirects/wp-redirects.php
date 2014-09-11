@@ -18,7 +18,9 @@ if(!defined('WP_REDIRECT_ROLES_EDIT_CAPS')) define('WP_REDIRECT_ROLES_EDIT_CAPS'
 
 class wp_redirects // WP Redirects; from anywhere — to anywhere.
 {
+
 	public static $roles_all_caps = array(); // WP Roles; as array.
+
 	public static $roles_edit_caps = array(); // WP Roles; as array.
 
 	public static function init() // Initialize WP Redirects.
@@ -42,6 +44,12 @@ class wp_redirects // WP Redirects; from anywhere — to anywhere.
 
 		add_action('add_meta_boxes_'.($post_type = 'redirect'), 'wp_redirects::meta_boxes');
 		add_action('save_post', 'wp_redirects::meta_boxes_save');
+
+		add_action('manage_redirect_posts_custom_column', 'wp_redirects::show_admin_column_value', 10, 2);
+		add_action('pre_get_posts', 'wp_redirects::admin_column_orderby', 10, 1);
+		add_action('admin_enqueue_scripts', 'wp_redirects::load_custom_wp_admin_style');
+		add_filter('manage_redirect_posts_columns', 'wp_redirects::add_admin_columns', 10, 1);
+		add_filter('manage_edit-redirect_sortable_columns', 'wp_redirects::register_sortable_admin_columns', 10, 1);
 	}
 
 	public static function register()
@@ -165,7 +173,16 @@ class wp_redirects // WP Redirects; from anywhere — to anywhere.
 		$status = (is_numeric($status = get_post_meta($redirect_id, 'wp_redirect_status', TRUE))) ? (integer)$status : 301;
 
 		if($to && $status) // Redirection URL w/ a possible custom status code.
+		{
+			// Update hit counter for this redirect
+			$redirect_hits = (int)get_post_meta(get_the_ID(), 'wp_redirect_hits', TRUE) + 1;
+			update_post_meta(get_the_ID(), 'wp_redirect_hits', $redirect_hits);
+
+			// Update last access time for this redirect
+			update_post_meta(get_the_ID(), 'wp_redirect_last_access', time());
+
 			wp_redirect($to, $status).exit(); // It's a good day in Eureka :-)
+		}
 
 		wp_redirect(home_url('/'), 301).exit(); // Default redirection (ALWAYS redirect).
 	}
@@ -213,6 +230,13 @@ class wp_redirects // WP Redirects; from anywhere — to anywhere.
 
 			$_status = (is_numeric($_status = get_post_meta($_pattern->post_id, 'wp_redirect_status', TRUE))) ? (integer)$_status : 301;
 
+			// Update hit counter for this redirect
+			$redirect_hits = (int)get_post_meta(get_the_ID(), 'wp_redirect_hits', TRUE) + 1;
+			update_post_meta(get_the_ID(), 'wp_redirect_hits', $redirect_hits);
+
+			// Update last access time for this redirect
+			update_post_meta(get_the_ID(), 'wp_redirect_last_access', time());
+
 			wp_redirect($_to, $_status).exit(); // Redirection URL w/ a possible custom status code.
 		}
 		unset($_pattern, $_is_regex, $_pattern_matches, $_is_regex_matches, $_to, $_status); // Housekeeping.
@@ -229,8 +253,9 @@ class wp_redirects // WP Redirects; from anywhere — to anywhere.
 
 	public static function meta_boxes()
 	{
-		add_meta_box('wp-redirect', __('Redirect Configuration', 'wp-redirects'), // One meta box (for now).
+		add_meta_box('wp-redirect', __('Redirect Configuration', 'wp-redirects'),
 		             'wp_redirects::redirect_meta_box', 'redirect', 'normal', 'high');
+		add_meta_box('wp-redirect-stats', __('Redirection Statistics', 'wp-redirects'), 'wp_redirects::redirect_stats_meta_box', 'redirect', 'normal', 'high');
 	}
 
 	public static function redirect_meta_box($post)
@@ -258,6 +283,20 @@ class wp_redirects // WP Redirects; from anywhere — to anywhere.
 		wp_nonce_field('wp-redirect-meta-boxes', 'wp_redirect_meta_boxes');
 	}
 
+	public static function redirect_stats_meta_box($post)
+	{
+		if(is_object($post) && !empty($post->ID) && ($post_id = $post->ID))
+		{
+			echo __('<strong>Total Hits:</strong>', 'wp-redirects').'&nbsp;<code><span id="wp-redirect-hit-count">'.((get_post_meta($post_id, 'wp_redirect_hits', TRUE)) ? esc_attr(get_post_meta($post_id, 'wp_redirect_hits', TRUE)) : '0').'</span></code>&nbsp;(<a href="#" onclick="document.getElementById(\'wp-redirect-hits\').value =\'0\';document.getElementById(\'wp-redirect-hit-count\').innerHTML =\'0\';document.getElementById(\'wp-redirect-hit-count-reset\').style.display = \'block\';">reset</a>)<br />'."\n";
+			echo '<input type="hidden" id="wp-redirect-hits" name="wp_redirect_hits" value="'.((get_post_meta($post_id, 'wp_redirect_hits', TRUE)) ? esc_attr(get_post_meta($post_id, 'wp_redirect_hits', TRUE)) : '0').'" /><br />'."\n";
+			echo '<div style="display:none;color:red;" id="wp-redirect-hit-count-reset">'.__('The hit count for this redirect has been reset. To save these changes, click Update.', 'wp-redirects').'</div>';
+
+			echo '<input type="hidden" id="wp-redirect-last-access" name="wp_redirect_last_access" value="'.((get_post_meta($post_id, 'wp_redirect_last_access', TRUE)) ? esc_attr(get_post_meta($post_id, 'wp_redirect_hits', TRUE)) : '0').'" /><br />'."\n";
+
+			wp_nonce_field('wp-redirect-meta-boxes', 'wp_redirect_meta_boxes');
+		}
+	}
+
 	public static function meta_boxes_save($post_id)
 	{
 		if(is_numeric($post_id) && (!defined('DOING_AUTOSAVE') || !DOING_AUTOSAVE) && ($_p = wp_redirects::trim_strip_deep($_POST)))
@@ -275,6 +314,12 @@ class wp_redirects // WP Redirects; from anywhere — to anywhere.
 
 					if(isset($_p['wp_redirect_from_uri_pattern']))
 						update_post_meta($post_id, 'wp_redirect_from_uri_pattern', addslashes((string)$_p['wp_redirect_from_uri_pattern']));
+
+					if(isset($_p['wp_redirect_hits']))
+						update_post_meta($post_id, 'wp_redirect_hits', (int)$_p['wp_redirect_hits']);
+
+					if(isset($_p['wp_redirect_last_access']))
+						update_post_meta($post_id, 'wp_redirect_last_access', (int)$_p['wp_redirect_last_access']);
 				}
 	}
 
@@ -321,6 +366,70 @@ class wp_redirects // WP Redirects; from anywhere — to anywhere.
 	public static function wpdb()
 	{
 		return $GLOBALS['wpdb'];
+	}
+
+	public static function add_admin_columns($columns)
+	{
+		return array_merge($columns,
+		                   array('hits'        => __('Hits'),
+		                         'last_access' => __('Last Access')));
+	}
+
+	public static function show_admin_column_value($column, $post_id)
+	{
+		switch($column)
+		{
+			case 'hits':
+				echo get_post_meta($post_id, 'wp_redirect_hits', TRUE);
+				break;
+
+			case 'last_access':
+				if(get_post_meta($post_id, 'wp_redirect_last_access', TRUE) == '0')
+				{
+					echo __('Never', 'wp-redirects');
+				}
+				elseif(get_post_meta($post_id, 'wp_redirect_last_access', TRUE))
+				{
+					echo date(get_option('date_format'), get_post_meta($post_id, 'wp_redirect_last_access', TRUE));
+				}
+
+				break;
+		}
+	}
+
+	public static function register_sortable_admin_columns($columns)
+	{
+		$columns['hits']        = 'hit';
+		$columns['last_access'] = 'last_access';
+
+		return $columns;
+	}
+
+	public static function admin_column_orderby($query)
+	{
+		if(!is_admin())
+			return;
+
+		$orderby = $query->get('orderby');
+
+		if('hit' == $orderby)
+		{
+			$query->set('meta_key', 'wp_redirect_hits');
+			$query->set('orderby', 'meta_value_num');
+		}
+		elseif('last_access' == $orderby)
+		{
+			$query->set('meta_key', 'wp_redirect_last_access');
+			$query->set('orderby', 'meta_value_num');
+		}
+	}
+
+	public static function load_custom_wp_admin_style($hook)
+	{
+		if('edit.php' != $hook) // only load this style on the Edit posts admin screen
+			return;
+		wp_register_style('wp_redirects_wp_admin_css', plugin_dir_url(__FILE__).'admin-style.css', FALSE, '1.0.0');
+		wp_enqueue_style('wp_redirects_wp_admin_css');
 	}
 }
 
