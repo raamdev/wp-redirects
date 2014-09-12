@@ -231,11 +231,11 @@ namespace wp_redirects // Root namespace.
 				if($to && $status) // Redirection URL w/ a possible custom status code.
 				{
 					// Update hit counter for this redirect
-					$redirect_hits = (int)get_post_meta(get_the_ID(), 'wp_redirect_hits', TRUE) + 1;
-					update_post_meta(get_the_ID(), 'wp_redirect_hits', $redirect_hits);
+					$redirect_hits = (int)get_post_meta($redirect_id, 'wp_redirect_hits', TRUE) + 1;
+					update_post_meta($redirect_id, 'wp_redirect_hits', $redirect_hits);
 
 					// Update last access time for this redirect
-					update_post_meta(get_the_ID(), 'wp_redirect_last_access', time());
+					update_post_meta($redirect_id, 'wp_redirect_last_access', time());
 
 					wp_redirect($to, $status).exit(); // It's a good day in Eureka :-)
 				}
