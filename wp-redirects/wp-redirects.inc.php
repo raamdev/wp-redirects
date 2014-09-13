@@ -346,8 +346,6 @@ namespace wp_redirects // Root namespace.
 					echo '<input type="hidden" id="wp-redirect-hits" name="wp_redirect_hits" value="'.((get_post_meta($post_id, 'wp_redirect_hits', TRUE)) ? esc_attr(get_post_meta($post_id, 'wp_redirect_hits', TRUE)) : '0').'" /><br />'."\n";
 					echo '<div style="display:none;color:red;" id="wp-redirect-hit-count-reset">'.__('The hit count for this redirect has been reset. To save these changes, click Update.', 'wp-redirects').'</div>';
 
-					echo '<input type="hidden" id="wp-redirect-last-access" name="wp_redirect_last_access" value="'.((get_post_meta($post_id, 'wp_redirect_last_access', TRUE)) ? esc_attr(get_post_meta($post_id, 'wp_redirect_hits', TRUE)) : '0').'" /><br />'."\n";
-
 					wp_nonce_field('wp-redirect-meta-boxes', 'wp_redirect_meta_boxes');
 				}
 			}
@@ -422,18 +420,31 @@ namespace wp_redirects // Root namespace.
 				switch($column)
 				{
 					case 'hits':
-						echo get_post_meta($post_id, 'wp_redirect_hits', TRUE);
+						$_hits = get_post_meta($post_id, 'wp_redirect_hits', TRUE);
+
+						if($_hits == '')
+							update_post_meta($post_id, 'wp_redirect_hits', '0');
+
+						echo $_hits;
+
+						unset($_hits);
 						break;
 
 					case 'last_access':
-						if(get_post_meta($post_id, 'wp_redirect_last_access', TRUE) == '0')
+						$_last_access = get_post_meta($post_id, 'wp_redirect_last_access', TRUE);
+
+						if($_last_access == '')
 						{
+							update_post_meta($post_id, 'wp_redirect_last_access', '0');
+							$_last_access = '0';
+						}
+
+						if($_last_access == '0')
 							echo __('Never', 'wp-redirects');
-						}
-						elseif(get_post_meta($post_id, 'wp_redirect_last_access', TRUE))
-						{
+						else
 							echo date(get_option('date_format'), get_post_meta($post_id, 'wp_redirect_last_access', TRUE));
-						}
+
+						unset($_last_access);
 						break;
 				}
 			}
