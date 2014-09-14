@@ -306,6 +306,18 @@ namespace wp_redirects // Root namespace.
 				return (!empty($value)) ? $value : ''; // Default to empty string.
 			}
 
+			public static function get_redirect_hits($post_id) {
+				if(!is_integer($post_id))
+					return '';
+
+				$_hits = get_post_meta($post_id, 'wp_redirect_hits', TRUE);
+
+				if($_hits == '')
+					update_post_meta($post_id, 'wp_redirect_hits', '0');
+
+				return $_hits;
+			}
+
 			public static function get_redirect_last_access_date($post_id) {
 				if(!is_integer($post_id))
 					return '';
@@ -405,22 +417,11 @@ namespace wp_redirects // Root namespace.
 				if(is_object($post) && !empty($post->ID) && ($post_id = $post->ID))
 				{
 
-					$_last_access = get_post_meta($post_id, 'wp_redirect_last_access', TRUE);
-
-					if($_last_access == '')
-					{
-						update_post_meta($post_id, 'wp_redirect_last_access', '0');
-						$_last_access = '0';
-					}
-
-					if($_last_access == '0')
-						$_last_access = __('Never', 'wp-redirects');
-					else
-						$_last_access = get_redirect_last_access_date($post_id);
+					$last_access_date = plugin::get_redirect_last_access_date($post_id);
 
 					echo __('<strong>Total Hits:</strong>', 'wp-redirects').'&nbsp;<code><span id="wp-redirect-hit-count">'.((get_post_meta($post_id, 'wp_redirect_hits', TRUE)) ? esc_attr(get_post_meta($post_id, 'wp_redirect_hits', TRUE)) : '0').'</span></code>&nbsp;(<a href="#wp-redirect-stats" onclick="document.getElementById(\'wp-redirect-hits\').value =\'0\';document.getElementById(\'wp-redirect-hit-count\').innerHTML =\'0\';document.getElementById(\'wp-redirect-hit-count-reset\').style.display = \'block\';">reset</a>)<br /><br />'."\n";
 
-					echo __('<strong>Last Access:</strong>', 'wp-redirects').'&nbsp;<code><span id="wp-redirect-last-access-date">'.$_last_access.'</span></code>&nbsp;(<a href="#wp-redirect-stats" onclick="document.getElementById(\'wp-redirect-last-access\').value =\'0\';document.getElementById(\'wp-redirect-last-access-date\').innerHTML =\'Never\';document.getElementById(\'wp-redirect-last-access-reset\').style.display = \'block\';">reset</a>)<br />'."\n";
+					echo __('<strong>Last Access:</strong>', 'wp-redirects').'&nbsp;<code><span id="wp-redirect-last-access-date">'.$last_access_date.'</span></code>&nbsp;(<a href="#wp-redirect-stats" onclick="document.getElementById(\'wp-redirect-last-access\').value =\'0\';document.getElementById(\'wp-redirect-last-access-date\').innerHTML =\'Never\';document.getElementById(\'wp-redirect-last-access-reset\').style.display = \'block\';">reset</a>)<br />'."\n";
 
 					echo '<input type="hidden" id="wp-redirect-hits" name="wp_redirect_hits" value="'.((get_post_meta($post_id, 'wp_redirect_hits', TRUE)) ? esc_attr(get_post_meta($post_id, 'wp_redirect_hits', TRUE)) : '0').'" />';
 					echo '<input type="hidden" id="wp-redirect-last-access" name="wp_redirect_last_access" value="'.((get_post_meta($post_id, 'wp_redirect_last_access', TRUE)) ? esc_attr(get_post_meta($post_id, 'wp_redirect_last_access', TRUE)) : '0').'" />';
@@ -502,31 +503,11 @@ namespace wp_redirects // Root namespace.
 				switch($column)
 				{
 					case 'hits':
-						$_hits = get_post_meta($post_id, 'wp_redirect_hits', TRUE);
-
-						if($_hits == '')
-							update_post_meta($post_id, 'wp_redirect_hits', '0');
-
-						echo $_hits;
-
-						unset($_hits);
+						echo plugin::get_redirect_hits($post_id);
 						break;
 
 					case 'last_access':
-						$_last_access = get_post_meta($post_id, 'wp_redirect_last_access', TRUE);
-
-						if($_last_access == '')
-						{
-							update_post_meta($post_id, 'wp_redirect_last_access', '0');
-							$_last_access = '0';
-						}
-
-						if($_last_access == '0')
-							echo __('Never', 'wp-redirects');
-						else
-							echo date(get_option('date_format'), get_post_meta($post_id, 'wp_redirect_last_access', TRUE));
-
-						unset($_last_access);
+						echo plugin::get_redirect_last_access_date($post_id);
 						break;
 				}
 			}
