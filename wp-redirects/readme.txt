@@ -1,14 +1,14 @@
 === WP Redirects ===
 
-Stable tag: 131121
+Stable tag: 141009
 Requires at least: 3.2
-Tested up to: 3.7.1
+Tested up to: 4.0
 Text Domain: wp-redirects
 
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Contributors: WebSharks, JasWSInc
+Contributors: raamdev, WebSharks, JasWSInc
 Donate link: http://www.websharks-inc.com/r/wp-theme-plugin-donation/
 Tags: redirect, redirects, 301 redirects, links, relocate, SEO, post type, post types, utilities, posts, pages
 
@@ -78,6 +78,14 @@ Released under the terms of the [GNU General Public License](http://www.gnu.org/
 	- Font Awesome <http://fortawesome.github.io/Font-Awesome/>
 
 == Changelog ==
+
+= v141009 =
+
+- **New Feature**: Hit counter. WP Redirects will now keep track of how many times a redirect has been used. There is a new, sortable Hits column in the main Redirects list that allows you to sort your redirects by the number of hits. See [#4](https://github.com/websharks/wp-redirects/issues/4).
+- **New Feature**: Last Access Time. WP Redirects will now keep track of the date and time a redirect was last used. There is a new, sortable Last Access column in the main Redirects list that allows you to sort your redirect by the last access time. See [#4](https://github.com/websharks/wp-redirects/issues/4).
+- **Enhancement**: Overhauled the New/Edit Redirect screen. Sections are now modular meta boxes that can be hidden/shown using the Screen Options panel. Lots of inline documentation was also added to help clarify each option. See [#13](https://github.com/websharks/wp-redirects/issues/13).
+- **Enhancement**: Refactored codebase to improve readability and organization of code. See [#9](https://github.com/websharks/wp-redirects/issues/9).
+- **New Maintainer**: Added raamdev to the contributors list. [Raam Dev](https://profiles.wordpress.org/raamdev/) will now be maintaining the WP Redirects plugin.
 
 = v131121 =
 
