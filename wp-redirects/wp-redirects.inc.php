@@ -15,7 +15,7 @@ namespace wp_redirects // Root namespace.
 
 			public $file = ''; // Defined by class constructor.
 
-			public $version = '140912'; // See: `readme.txt` file.
+			public $version = '141009'; // See: `readme.txt` file.
 
 			public $text_domain = ''; // Defined by class constructor.
 
