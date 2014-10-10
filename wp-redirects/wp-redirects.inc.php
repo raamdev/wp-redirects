@@ -347,7 +347,7 @@ namespace wp_redirects // Root namespace.
 				add_meta_box('wp-redirect-status', __('HTTP Status Code', 'wp-redirects'),
 				             'wp_redirects\plugin::redirect_meta_box_status', 'redirect', 'normal', 'high');
 				add_meta_box('wp-redirect-stats', __('Redirection Statistics', 'wp-redirects'),
-				             'wp_redirects\plugin::redirect_meta_box_stats', 'redirect', 'normal', 'high');
+				             'wp_redirects\plugin::redirect_meta_box_stats', 'redirect', 'side', 'default');
 			}
 
 			public static function redirect_meta_box_url($post)
