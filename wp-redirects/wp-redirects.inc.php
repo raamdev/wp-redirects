@@ -217,7 +217,7 @@ namespace wp_redirects // Root namespace.
 				$redirect_id = get_the_ID(); // Pull this one time only.
 
 				$to = (string)get_post_meta($redirect_id, 'wp_redirect_to', TRUE);
-				$to = preg_replace_callback('/%%\\\$([^\[]+?)(.+?)%%/i', 'wp_redirects\plugin::_url_e_gprcs_value', $to);
+				$to = preg_replace_callback('/%%\$([^[]+?)(\[.+?)%%/i', '\\wp_redirects\\plugin::_url_e_gprcs_value', $to);
 				$to = preg_replace('/%%(.+?)%%/i', '', $to); // Ditch any remaining replacement codes.
 
 				$to = // Cleanup any double slashes left over by replacement codes.
@@ -274,7 +274,7 @@ namespace wp_redirects // Root namespace.
 						{
 							return urlencode((string)@$_is_regex_matches[$m[1]]);
 						}, $_to) : $_to);
-					$_to = preg_replace_callback('/%%\\\$([^\[]+?)(.+?)%%/i', 'wp_redirects\plugin::_url_e_gprcs_value', $_to);
+					$_to = preg_replace_callback('/%%\$([^[]+?)(\[.+?)%%/i', '\\wp_redirects\\plugin::_url_e_gprcs_value', $_to);
 					$_to = preg_replace('/%%(.+?)%%/i', '', $_to); // Ditch any remaining replacement codes.
 
 					$_to = // Cleanup any double slashes left over by replacement codes.
@@ -303,7 +303,7 @@ namespace wp_redirects // Root namespace.
 					if(strlen($element_w_brackets = $m[2]) && preg_match('/^(?:(?:\[(["\'])[a-z0-9 \._\-]+?\\1\])|(?:\[[0-9]+\]))+$/i', $element_w_brackets))
 						eval('$value = urlencode(trim(stripslashes((string)@$'.$gprcs.$element_w_brackets.')));');
 
-				return (!empty($value)) ? $value : ''; // Default to empty string.
+				return !empty($value) ? $value : ''; // Default to empty string.
 			}
 
 			public static function get_redirect_hits($post_id) {
