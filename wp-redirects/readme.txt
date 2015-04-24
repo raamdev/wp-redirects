@@ -2,7 +2,7 @@
 
 Stable tag: 141009
 Requires at least: 3.2
-Tested up to: 4.0
+Tested up to: 4.2
 Text Domain: wp-redirects
 
 License: GPLv2 or later
