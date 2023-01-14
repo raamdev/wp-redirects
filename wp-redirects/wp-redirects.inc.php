@@ -60,12 +60,12 @@ namespace wp_redirects // Root namespace.
 
 				if(WP_REDIRECT_ROLES_ALL_CAPS) // Specific Roles?
 					$this->roles_all_caps = // Convert these to an array.
-						preg_split('/[\s;,]+/', WP_REDIRECT_ROLES_ALL_CAPS, NULL, PREG_SPLIT_NO_EMPTY);
+						preg_split('/[\s;,]+/', WP_REDIRECT_ROLES_ALL_CAPS, 0, PREG_SPLIT_NO_EMPTY);
 				$this->roles_all_caps = apply_filters('wp_redirect_roles_all_caps', $this->roles_all_caps);
 
 				if(WP_REDIRECT_ROLES_EDIT_CAPS) // Specific Roles?
 					$this->roles_edit_caps = // Convert these to an array.
-						preg_split('/[\s;,]+/', WP_REDIRECT_ROLES_EDIT_CAPS, NULL, PREG_SPLIT_NO_EMPTY);
+						preg_split('/[\s;,]+/', WP_REDIRECT_ROLES_EDIT_CAPS, 0, PREG_SPLIT_NO_EMPTY);
 				$this->roles_edit_caps = apply_filters('wp_redirect_roles_edit_caps', $this->roles_edit_caps);
 
 				add_action('wp_loaded', array($this, 'actions'));
